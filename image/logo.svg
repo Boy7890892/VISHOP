@@ -1,0 +1,21 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Definisi Gradasi Warna VISHOP -->
+    <defs>
+        <linearGradient id="vishopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff7a59" />
+            <stop offset="100%" stop-color="#ee4d2d" />
+        </linearGradient>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#ee4d2d" flood-opacity="0.3"/>
+        </filter>
+    </defs>
+
+    <!-- Tali Tas Belanja -->
+    <path d="M 60 85 C 60 25, 140 25, 140 85" fill="none" stroke="url(#vishopGrad)" stroke-width="14" stroke-linecap="round"/>
+    
+    <!-- Badan Tas Belanja -->
+    <rect x="35" y="80" width="130" height="95" rx="18" fill="url(#vishopGrad)" filter="url(#shadow)" />
+    
+    <!-- Huruf V Elegan di Tengah Tas -->
+    <path d="M 70 110 L 100 155 L 130 110" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

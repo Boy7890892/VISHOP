@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar - VISHOP</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+        }
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+        .auth-box {
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            z-index: 10;
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo-text {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0; /* Margin diatur ke 0 agar sejajar dengan gambar */
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #fdfdfd;
+            transition: all 0.3s ease;
+        }
+        .input-group input:focus {
+            border-color: #28a745;
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.1);
+        }
+        .btn-auth {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.35);
+        }
+        .link-bottom {
+            display: block;
+            margin-top: 25px;
+            font-size: 14px;
+            color: #555;
+            text-decoration: none;
+        }
+        .link-bottom span {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .link-bottom:hover span {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    
+    <div class="auth-box">
+        <!-- BARU: Wadah untuk Logo Gambar dan Teks VISHOP -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 5px;">
+            <!-- Warna bayangan (drop-shadow) disesuaikan jadi hijau agar cocok dengan tema register -->
+            <img src="image/logo.svg" alt="Logo VISHOP" style="height: 45px; width: auto; filter: drop-shadow(0 4px 6px rgba(40, 167, 69, 0.3));">
+            <h1 class="logo-text">VISHOP</h1>
+        </div>
+
+        <p class="subtitle">Buat Akun Belanja Anda</p>
+        
+        <form id="formRegister">
+            <div class="input-group">
+                <label>Username Baru</label>
+                <input type="text" id="inputUsername" placeholder="Buat username unik" required>
+            </div>
+            <div class="input-group">
+                <label>Password Baru</label>
+                <input type="password" id="inputPassword" placeholder="Buat password rahasia" required>
+            </div>
+            <button type="submit" class="btn-auth">Daftar Sekarang</button>
+        </form>
+        
+        <a href="login.html" class="link-bottom">Sudah punya akun? <span>Login di sini</span></a>
+    </div>
+
+    <script>
+        document.getElementById('formRegister').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const dataRegister = {
+                username: document.getElementById('inputUsername').value,
+                password: document.getElementById('inputPassword').value
+            };
+
+            const btn = document.querySelector('.btn-auth');
+            btn.innerText = 'Memproses...';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataRegister)
+                });
+
+                const hasil = await response.json();
+
+                if (response.ok) {
+                    alert(hasil.message);
+                    window.location.href = 'login.html'; 
+                } else {
+                    alert(hasil.error);
+                    btn.innerText = 'Daftar Sekarang';
+                }
+            } catch (error) {
+                alert("Server tidak merespons.");
+                btn.innerText = 'Daftar Sekarang';
+            }
+        });
+    </script>
+</body>
+</html>

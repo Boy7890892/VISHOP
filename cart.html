@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keranjang & Checkout - VISHOP</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f9; color: #333; }
+        
+        .header { background: #fff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .header-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .header-logo img { height: 38px; width: auto; filter: drop-shadow(0 2px 4px rgba(238, 77, 45, 0.2)); }
+        .logo-text { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ee4d2d 0%, #ff7a59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        
+        h1 { font-size: 20px; margin-bottom: 20px; color: #1a1a1a; }
+        .cart-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; align-items: center; }
+        
+        /* KODE VOUCHER SECTION */
+        .voucher-section { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; display: flex; gap: 10px; align-items: center; border: 1px dashed #ced4da; }
+        .voucher-section input { flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        .voucher-section input:focus { border-color: #ee4d2d; }
+        .btn-voucher { padding: 10px 20px; background: #343a40; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-voucher:hover { background: #212529; }
+        .voucher-feedback { font-size: 12px; margin-top: 5px; font-weight: 600; }
+
+        .cart-summary { margin-top: 20px; padding-top: 15px; border-top: 2px solid #f0f0f0; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; color: #666; }
+        .total-price { font-size: 20px; font-weight: 700; color: #ee4d2d; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        .btn-back { padding: 12px 20px; background: #f1f3f5; color: #555; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
+        .btn-back:hover { background: #e2e6ea; }
+        
+        .btn-checkout { flex: 1; padding: 12px; background: linear-gradient(135deg, #ff7a59 0%, #ee4d2d 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+        .btn-checkout:hover { opacity: 0.9; }
+
+        /* MODAL / KOTAK DIALOG */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .form-group { text-align: left; margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #ee4d2d; }
+        .form-group textarea { resize: none; }
+        
+        .map-container { width: 100%; height: 160px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; margin-bottom: 8px; background: #f0f0f0; }
+        .btn-kunci-lokasi { width: 100%; padding: 10px; background: #e3f2fd; color: #0d6efd; border: 1px solid #0d6efd; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .btn-kunci-lokasi:hover { background: #0d6efd; color: white; }
+
+        .qris-img { width: 220px; height: 220px; margin: 5px auto 15px; border: 4px solid #f1f3f5; border-radius: 12px; padding: 10px; background: white; }
+        .btn-bayar { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 15px; }
+        .btn-batal { background: none; border: none; color: #888; margin-top: 10px; cursor: pointer; font-size: 14px; }
+        
+        .timer-display { font-size: 18px; font-weight: 800; color: #ff3b3b; margin-bottom: 10px; background: #fff0ed; padding: 8px; border-radius: 8px; display: inline-block; width: 100%; }
+
+        /* STRUK BELANJA MODERN */
+        .struk-box { display: none; background: #ffffff; max-width: 460px; margin: 20px auto; padding: 45px 40px; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
+        .struk-header { text-align: center; margin-bottom: 25px; }
+        .struk-icon-wrapper { margin-bottom: 12px; display: flex; justify-content: center; }
+        .struk-logo { height: 42px; width: auto; filter: drop-shadow(0 4px 6px rgba(238, 77, 45, 0.25)); }
+        
+        .struk-title { color: #ee4d2d; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .struk-subtitle { font-size: 14px; color: #6c757d; font-weight: 500; }
+        .struk-date { font-size: 13px; color: #adb5bd; margin-top: 4px; }
+        
+        .struk-divider { border-bottom: 1.5px dashed #dee2e6; margin: 20px 0; }
+        
+        .struk-info-kirim { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; color: #495057; text-align: left; }
+        .struk-info-kirim strong { color: #212529; display: block; margin-bottom: 4px; font-size: 14px; }
+        .struk-info-kirim p { margin-bottom: 4px; line-height: 1.4; }
+
+        .struk-items-container { margin-bottom: 20px; }
+        .struk-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: #495057; font-weight: 500; }
+        
+        .struk-total { display: flex; justify-content: space-between; border-top: 2.5px solid #212529; padding-top: 15px; margin-top: 15px; font-weight: 800; font-size: 18px; color: #212529; }
+        
+        .btn-print { width: 100%; padding: 14px; background: #343a40; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 35px; }
+        .link-selesai { display: block; text-align: center; margin-top: 20px; color: #ee4d2d; text-decoration: none; font-weight: 600; font-size: 15px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #strukSection, #strukSection * { visibility: visible; }
+            #strukSection { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; margin: 0; padding: 20px; border-radius: 0; }
+            .btn-print, .link-selesai { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="index.html" class="header-logo">
+            <img src="image/logo.svg" alt="Logo VISHOP">
+            <span class="logo-text">VISHOP</span>
+        </a>
+        <a href="index.html" style="color: #ee4d2d; text-decoration: none; font-weight: 600;">Kembali ke Toko</a>
+    </header>
+
+    <div class="container">
+        <!-- TAMPILAN KERANJANG -->
+        <div class="card" id="cartSection">
+            <h1>Keranjang Belanja Anda</h1>
+            <div id="cartList"></div>
+            
+            <!-- KODE VOUCHER INPUT -->
+            <div class="voucher-section">
+                <input type="text" id="inputVoucher" placeholder="Masukkan Kode Voucher (Cth: VISHOPHEMAT)">
+                <button class="btn-voucher" onclick="terapkanVoucher()">Gunakan</button>
+            </div>
+            <div id="voucherFeedback" class="voucher-feedback"></div>
+
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotalPrice">Rp 0</span>
+                </div>
+                <div class="summary-row" id="rowDiskon" style="display:none; color: #28a745;">
+                    <span id="labelDiskon">Diskon Voucher:</span>
+                    <span id="potonganHarga">- Rp 0</span>
+                </div>
+                <div class="summary-row" style="margin-top: 10px;">
+                    <span style="font-weight: 700; color: #1a1a1a;">Total Pembayaran:</span>
+                    <span class="total-price" id="totalPrice">Rp 0</span>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <a href="index.html" class="btn-back">Lanjut Belanja</a>
+                <button class="btn-checkout" id="btnCheckout" onclick="bukaQris()" style="display:none;">Checkout Sekarang</button>
+            </div>
+        </div>
+
+        <!-- STRUK BELANJA -->
+        <div class="struk-box" id="strukSection">
+            <div class="struk-header">
+                <div class="struk-icon-wrapper">
+                    <img src="image/logo.svg" alt="Logo VISHOP" class="struk-logo">
+                </div>
+                <h2 class="struk-title">VISHOP</h2>
+                <p class="struk-subtitle">Struk Pembayaran Bukti Sah</p>
+                <p id="strukTanggal" class="struk-date"></p>
+            </div>
+            
+            <div class="struk-divider"></div>
+
+            <div class="struk-info-kirim">
+                <strong>Detail Pengiriman:</strong>
+                <p id="cetakNama">-</p>
+                <p id="cetakAlamat">-</p>
+                <p style="margin-top: 5px; color: #ee4d2d; font-weight: 600;">Kurir: <span id="cetakKurir">-</span></p>
+            </div>
+            
+            <div id="strukList" class="struk-items-container"></div>
+            
+            <div class="struk-total">
+                <span>Total Lunas (Termasuk Diskon):</span>
+                <span id="strukTotal">Rp 0</span>
+            </div>
+            
+            <button class="btn-print" onclick="window.print()">Cetak / Simpan Struk</button>
+            <a href="index.html" class="link-selesai">Selesai & Belanja Lagi</a>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP QRIS -->
+    <div class="modal-overlay" id="qrisModal">
+        <div class="modal-box" style="max-width: 400px;">
+            <h3 style="margin-bottom: 5px;">Scan QRIS untuk Membayar</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Gunakan GoPay, OVO, Dana, atau m-Banking</p>
+            
+            <div class="timer-display">Sisa Waktu: <span id="waktuMundur">15:00</span></div>
+            
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=VISHOP_PAYMENT_SIMULATION" alt="QRIS Vishop" class="qris-img">
+            
+            <div style="font-size: 18px; font-weight: bold; color: #ee4d2d; margin: 10px 0;" id="qrisTotal">Rp 0</div>
+            
+            <button class="btn-bayar" onclick="lanjutKePengiriman()">✓ Saya Sudah Selesai Bayar</button>
+            <br>
+            <button class="btn-batal" onclick="tutupQris()">Batalkan</button>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP PENGIRIMAN -->
+    <div class="modal-overlay" id="shippingModal">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 15px; color: #1a1a1a;">Informasi Pengiriman</h3>
+            
+            <div class="form-group">
+                <label for="namaPenerima">Nama Lengkap Penerima</label>
+                <input type="text" id="namaPenerima" placeholder="Masukkan nama Anda..." required>
+            </div>
+            
+            <div class="form-group">
+                <label for="alamatPenerima">Alamat Lengkap Rumah</label>
+                <textarea id="alamatPenerima" rows="2" placeholder="Cth: Semarang, atau Jl. Contoh No. 123..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Pilih Titik Lokasi (Google Maps)</label>
+                <div class="map-container">
+                    <iframe id="gmapIframe" src="https://maps.google.com/maps?q=Indonesia&t=&z=5&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+                <button type="button" class="btn-kunci-lokasi" onclick="alert('Titik koordinat pengiriman berhasil disesuaikan!')">📍 Kunci Titik Lokasi Peta</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="kurirPilihan">Pilih Kurir Pengiriman</label>
+                <select id="kurirPilihan" required>
+                    <option value="" disabled selected>-- Pilih Kurir --</option>
+                    <option value="J&T Express">J&T Express</option>
+                    <option value="SiCepat Express">SiCepat Express</option>
+                    <option value="JNE">JNE</option>
+                    <option value="Vishop Express">Vishop Express</option>
+                </select>
+            </div>
+
+            <button class="btn-checkout" onclick="selesaikanPesanan()" style="width: 100%; margin-top: 5px;">Konfirmasi & Lihat Struk</button>
+        </div>
+    </div>
+
+    <script>
+        let keranjang = JSON.parse(localStorage.getItem('keranjangVishop')) || [];
+        const cartList = document.getElementById('cartList');
+        const subtotalPriceEl = document.getElementById('subtotalPrice');
+        const totalPriceEl = document.getElementById('totalPrice');
+        const rowDiskon = document.getElementById('rowDiskon');
+        const labelDiskon = document.getElementById('labelDiskon');
+        const potonganHargaEl = document.getElementById('potonganHarga');
+        const btnCheckout = document.getElementById('btnCheckout');
+        const qrisModal = document.getElementById('qrisModal');
+        const shippingModal = document.getElementById('shippingModal');
+        const cartSection = document.getElementById('cartSection');
+        const strukSection = document.getElementById('strukSection');
+        
+        let intervalTimer;
+        let mapTypingTimer;
+        let nilaiDiskonFinal = 0; // Menyimpan besaran diskon aktif
+
+        // Integrasi Maps Otomatis
+        const inputAlamat = document.getElementById('alamatPenerima');
+        const mapIframe = document.getElementById('gmapIframe');
+        inputAlamat.addEventListener('input', function() {
+            clearTimeout(mapTypingTimer);
+            mapTypingTimer = setTimeout(() => {
+                const query = this.value.trim();
+                if (query.length > 2) {
+                    mapIframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                } else {
+                    mapIframe.src = `https://maps.google.com/maps?q=Indonesia&t=&z=5&ie=UTF8&iwloc=&output=embed`;
+                }
+            }, 1000);
+        });
+
+        function parseHarga(hargaStr) {
+            if (typeof hargaStr !== 'string') return Number(hargaStr) || 0;
+            return Number(hargaStr.replace(/[^0-9]/g, '')) || 0;
+        }
+
+        function hitungTotalBelanja() {
+            let subtotal = 0;
+            keranjang.forEach(item => {
+                subtotal += parseHarga(item.price);
+            });
+            return subtotal;
+        }
+
+        function muatKeranjang() {
+            cartList.innerHTML = '';
+
+            if (keranjang.length === 0) {
+                cartList.innerHTML = '<p style="color: #777; padding: 20px 0; text-align:center;">Keranjang Anda masih kosong.</p>';
+                subtotalPriceEl.innerText = 'Rp 0';
+                totalPriceEl.innerText = 'Rp 0';
+                btnCheckout.style.display = 'none';
+                rowDiskon.style.display = 'none';
+                return;
+            }
+
+            btnCheckout.style.display = 'block';
+
+            keranjang.forEach((item, index) => {
+                cartList.innerHTML += `
+                    <div class="cart-item">
+                        <div>
+                            <strong style="font-size: 15px;">${item.title}</strong>
+                            <p style="color: #ee4d2d; font-weight: bold; margin-top: 4px;">${item.price}</p>
+                        </div>
+                        <button onclick="hapusItem(${index})" style="background: #fff0ed; color: #ff3b3b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">Hapus</button>
+                    </div>
+                `;
+            });
+
+            perbaruiKalkulasiHarga();
+        }
+
+        function perbaruiKalkulasiHarga() {
+            const subtotal = hitungTotalBelanja();
+            subtotalPriceEl.innerText = 'Rp ' + subtotal.toLocaleString('id-ID');
+
+            let totalAkhir = subtotal - nilaiDiskonFinal;
+            if (totalAkhir < 0) totalAkhir = 0;
+
+            totalPriceEl.innerText = 'Rp ' + totalAkhir.toLocaleString('id-ID');
+        }
+
+        // SISTEM KODE VOUCHER
+        function terapkanVoucher() {
+            const kode = document.getElementById('inputVoucher').value.trim().toUpperCase();
+            const feedback = document.getElementById('voucherFeedback');
+            const subtotal = hitungTotalBelanja();
+
+            if (subtotal === 0) {
+                alert("Keranjang masih kosong!");
+                return;
+            }
+
+            if (kode === "VISHOP70") {
+                // Diskon 70%
+                nilaiDiskonFinal = Math.round(subtotal * 0.70);
+                labelDiskon.innerText = "Diskon Voucher (70%):";
+                potonganHargaEl.innerText = "- Rp " + nilaiDiskonFinal.toLocaleString('id-ID');
+                rowDiskon.style.display = "flex";
+                feedback.style.color = "#28a745";
+                feedback.innerText = "✓ Berhasil! Voucher VISHOP70 diterapkan (Diskon 70%).";
+            } else if (kode === "HEMAT20") {
+                // Potongan tetap Rp 20.000
+                nilaiDiskonFinal = 20000;
+                if (nilaiDiskonFinal > subtotal) nilaiDiskonFinal = subtotal;
+                labelDiskon.innerText = "Diskon Voucher (HEMAT20):";
+                potonganHargaEl.innerText = "- Rp " + nilaiDiskonFinal.toLocaleString('id-ID');
+                rowDiskon.style.display = "flex";
+                feedback.style.color = "#28a745";
+                feedback.innerText = "✓ Berhasil! Potongan Rp 20.000 diterapkan.";
+            } else {
+                nilaiDiskonFinal = 0;
+                rowDiskon.style.display = "none";
+                feedback.style.color = "#dc3545";
+                feedback.innerText = "✕ Kode voucher tidak valid atau sudah kedaluwarsa.";
+            }
+
+            perbaruiKalkulasiHarga();
+        }
+
+        function hapusItem(index) {
+            keranjang.splice(index, 1);
+            localStorage.setItem('keranjangVishop', JSON.stringify(keranjang));
+            muatKeranjang();
+        }
+
+        function mulaiTimer() {
+            let totalDetik = 15 * 60; 
+            const elemenWaktu = document.getElementById('waktuMundur');
+            
+            if(intervalTimer) clearInterval(intervalTimer);
+
+            intervalTimer = setInterval(() => {
+                totalDetik--;
+                let menit = Math.floor(totalDetik / 60);
+                let detik = totalDetik % 60;
+                menit = menit < 10 ? '0' + menit : menit;
+                detik = detik < 10 ? '0' + detik : detik;
+                elemenWaktu.innerText = `${menit}:${detik}`;
+
+                if (totalDetik <= 0) {
+                    clearInterval(intervalTimer);
+                    tutupQris();
+                    alert("Waktu pembayaran telah habis (15 Menit). Belanjaan Anda hangus.");
+                    localStorage.removeItem('keranjangVishop');
+                    keranjang = [];
+                    muatKeranjang();
+                }
+            }, 1000); 
+        }
+
+        function bukaQris() {
+            const totalAkhir = hitungTotalBelanja() - nilaiDiskonFinal;
+            document.getElementById('qrisTotal').innerText = 'Rp ' + totalAkhir.toLocaleString('id-ID');
+            qrisModal.style.display = 'flex';
+            document.getElementById('waktuMundur').innerText = "15:00"; 
+            mulaiTimer();
+        }
+
+        function tutupQris() {
+            qrisModal.style.display = 'none';
+            if(intervalTimer) clearInterval(intervalTimer); 
+        }
+
+        function lanjutKePengiriman() {
+            tutupQris(); 
+            shippingModal.style.display = 'flex';
+        }
+
+        function selesaikanPesanan() {
+            const nama = document.getElementById('namaPenerima').value.trim();
+            const alamat = document.getElementById('alamatPenerima').value.trim();
+            const kurir = document.getElementById('kurirPilihan').value;
+
+            if (nama === "" || alamat === "" || kurir === "") {
+                alert("Harap isi Nama, Alamat, dan pilih Kurir dengan lengkap!");
+                return;
+            }
+
+            shippingModal.style.display = 'none';
+
+            document.getElementById('cetakNama').innerText = nama;
+            document.getElementById('cetakAlamat').innerText = alamat;
+            document.getElementById('cetakKurir').innerText = kurir;
+
+            let strukHtml = '';
+            keranjang.forEach(item => {
+                strukHtml += `
+                    <div class="struk-item">
+                        <span>${item.title}</span>
+                        <span>${item.price}</span>
+                    </div>
+                `;
+            });
+
+            if (nilaiDiskonFinal > 0) {
+                strukHtml += `
+                    <div class="struk-item" style="color: #28a745; font-weight: 600;">
+                        <span>Potongan Voucher</span>
+                        <span>- Rp ${nilaiDiskonFinal.toLocaleString('id-ID')}</span>
+                    </div>
+                `;
+            }
+
+            document.getElementById('strukList').innerHTML = strukHtml;
+            const totalAkhir = hitungTotalBelanja() - nilaiDiskonFinal;
+            document.getElementById('strukTotal').innerText = 'Rp ' + totalAkhir.toLocaleString('id-ID');
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            let tanggalText = new Date().toLocaleDateString('id-ID', options);
+            tanggalText = tanggalText.replace(/\./g, ':').replace(' pukul ', ' pukul ');
+            document.getElementById('strukTanggal').innerText = tanggalText;
+
+            localStorage.removeItem('keranjangVishop');
+            keranjang = [];
+
+            cartSection.style.display = 'none';
+            strukSection.style.display = 'block';
+            
+            alert("Pesanan Berhasil Diproses! Struk belanja dan detail pengiriman Anda telah diterbitkan.");
+        }
+
+        window.onload = muatKeranjang;
+    </script>
+</body>
+</html>

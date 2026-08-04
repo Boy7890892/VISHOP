@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin VISHOP - Kelola Produk</title>
+    
+    <script>
+        const userAktif = JSON.parse(localStorage.getItem('userVishop'));
+        if (!userAktif || userAktif.role !== 'admin') {
+            alert("Akses Ditolak! Anda harus login sebagai Admin terlebih dahulu.");
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f9; color: #333; }
+
+        .admin-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.03); position: sticky; top: 0; z-index: 100; }
+        .header-logo { display: flex; align-items: center; gap: 12px; }
+        .header-logo img { height: 38px; width: auto; filter: drop-shadow(0 2px 4px rgba(238, 77, 45, 0.2)); }
+        .logo-text { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ee4d2d 0%, #ff7a59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-lihat-toko { padding: 10px 20px; background: white; color: #ee4d2d; text-decoration: none; font-weight: 600; border-radius: 8px; border: 1px solid #ffe6e1; transition: all 0.3s ease; }
+        .btn-lihat-toko:hover { background: #fff5f3; border-color: #ee4d2d; transform: translateY(-2px); }
+
+        .admin-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 380px 1fr; gap: 30px; align-items: start; }
+
+        .admin-card { background: #ffffff; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); border: 1px solid rgba(0,0,0,0.02); }
+        .admin-card h2 { font-size: 18px; color: #1a1a1a; margin-bottom: 25px; font-weight: 700; }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; font-weight: 600; }
+        .input-group input { width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: all 0.3s; }
+        .input-group input:focus { background: #ffffff; border-color: #ee4d2d; box-shadow: 0 0 0 4px rgba(238, 77, 45, 0.1); }
+
+        .checkbox-group { display: flex; gap: 15px; margin-bottom: 20px; font-size: 13px; font-weight: 600; color: #555; }
+        .checkbox-group label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+        .btn-simpan { width: 100%; padding: 14px; background: linear-gradient(135deg, #ff7a59 0%, #ee4d2d 100%); color: white; border: none; font-size: 15px; font-weight: 700; border-radius: 10px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn-simpan:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(238, 77, 45, 0.3); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; color: #555; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 15px; text-align: left; border-bottom: 2px solid #edf2f7; }
+        td { padding: 18px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #444; vertical-align: middle; }
+        
+        .badge { display: inline-block; padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; margin-right: 4px; }
+        .badge-new { background: #e3f2fd; color: #0d6efd; }
+        .badge-trending { background: #fff3cd; color: #856404; }
+
+        .btn-hapus { background-color: #fff0ed; color: #ff3b3b; border: none; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; border-radius: 6px; transition: all 0.3s; }
+        .btn-hapus:hover { background-color: #ff3b3b; color: white; }
+
+        @media (max-width: 900px) { .admin-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <header class="admin-header">
+        <div class="header-logo">
+            <img src="image/logo.svg" alt="Logo VISHOP">
+            <h1 class="logo-text">ADMIN VISHOP</h1>
+        </div>
+        <a href="index.html" class="btn-lihat-toko">Lihat Toko Utama</a>
+    </header>
+
+    <main class="admin-container">
+        <!-- FORM TAMBAH PRODUK -->
+        <div class="admin-card">
+            <h2>Tambah Produk & Atur Status</h2>
+            <form id="formTambahProduk">
+                <div class="input-group">
+                    <label>Nama Produk</label>
+                    <input type="text" id="inputTitle" placeholder="Cth: Sepatu Sneakers Premium" required>
+                </div>
+                <div class="input-group">
+                    <label>Harga Asli (Rp)</label>
+                    <input type="number" id="inputPrice" placeholder="Cth: 250000" required>
+                </div>
+                <div class="input-group">
+                    <label>Lokasi Pengiriman</label>
+                    <input type="text" id="inputLocation" placeholder="Cth: Jakarta Selatan" required>
+                </div>
+                <div class="input-group">
+                    <label>Link / URL Gambar</label>
+                    <input type="url" id="inputImage" placeholder="https://..." required>
+                </div>
+
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="checkNew"> Barang Baru</label>
+                    <label><input type="checkbox" id="checkTrending"> Trending</label>
+                </div>
+
+                <button type="submit" class="btn-simpan">Tambahkan ke Etalase</button>
+            </form>
+        </div>
+
+        <!-- TABEL DAFTAR PRODUK -->
+        <div class="admin-card">
+            <h2>Daftar Produk Tersedia</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama Produk</th>
+                            <th>Harga & Status</th>
+                            <th style="text-align: right;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelProduk">
+                        <!-- Dimuat JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        async function muatDaftarProduk() {
+            try {
+                const response = await fetch('http://localhost:3000/api/products');
+                const products = await response.json();
+                const tabel = document.getElementById('tabelProduk');
+                tabel.innerHTML = ''; 
+
+                products.forEach(product => {
+                    let badges = '';
+                    if (Number(product.is_new) === 1) badges += `<span class="badge badge-new">Baru</span>`;
+                    if (Number(product.is_trending) === 1) badges += `<span class="badge badge-trending">Trending</span>`;
+
+                    tabel.innerHTML += `
+                        <tr>
+                            <td><strong style="color: #666;">#${product.id}</strong></td>
+                            <td style="font-weight: 500;">${product.title}</td>
+                            <td>
+                                <div style="color: #ee4d2d; font-weight: 600;">Rp ${Number(product.price).toLocaleString('id-ID')}</div>
+                                <div style="margin-top: 4px;">${badges || '<span style="color:#aaa; font-size:12px;">Reguler</span>'}</div>
+                            </td>
+                            <td style="text-align: right;">
+                                <button class="btn-hapus" onclick="hapusProduk(${product.id})">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Gagal memuat produk admin");
+            }
+        }
+
+        async function hapusProduk(id) {
+            if (confirm("Yakin ingin menghapus produk ini?")) {
+                await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' });
+                muatDaftarProduk();
+            }
+        }
+
+        document.getElementById('formTambahProduk').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Membaca status checkbox dengan benar (.checked mengembalikan true atau false)
+            const isNewChecked = document.getElementById('checkNew').checked ? 1 : 0;
+            const isTrendingChecked = document.getElementById('checkTrending').checked ? 1 : 0;
+
+            const produkBaru = {
+                title: document.getElementById('inputTitle').value.trim(),
+                price: Number(document.getElementById('inputPrice').value) || 0,
+                location: document.getElementById('inputLocation').value.trim(),
+                image: document.getElementById('inputImage').value.trim(),
+                is_new: isNewChecked,
+                is_trending: isTrendingChecked
+            };
+
+            const btn = document.querySelector('.btn-simpan');
+            btn.innerText = 'Menyimpan...';
+
+            try {
+                const res = await fetch('http://localhost:3000/api/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(produkBaru)
+                });
+                
+                const hasil = await res.json();
+                if(res.ok) {
+                    document.getElementById('formTambahProduk').reset();
+                    muatDaftarProduk();
+                } else {
+                    alert(hasil.error || "Gagal menyimpan produk.");
+                }
+            } catch(err) {
+                alert("Gagal terhubung ke server.");
+            } finally {
+                btn.innerText = 'Tambahkan ke Etalase';
+            }
+        });
+
+        window.onload = muatDaftarProduk;
+    </script>
+</body>
+</html>
