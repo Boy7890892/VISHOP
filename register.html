@@ -44,7 +44,7 @@
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin: 0; /* Margin diatur ke 0 agar sejajar dengan gambar */
+            margin: 0;
             letter-spacing: 2px;
         }
         .subtitle {
@@ -115,9 +115,7 @@
     <div class="overlay"></div>
     
     <div class="auth-box">
-        <!-- BARU: Wadah untuk Logo Gambar dan Teks VISHOP -->
         <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 5px;">
-            <!-- Warna bayangan (drop-shadow) disesuaikan jadi hijau agar cocok dengan tema register -->
             <img src="image/logo.svg" alt="Logo VISHOP" style="height: 45px; width: auto; filter: drop-shadow(0 4px 6px rgba(40, 167, 69, 0.3));">
             <h1 class="logo-text">VISHOP</h1>
         </div>
@@ -152,7 +150,7 @@
             btn.innerText = 'Memproses...';
 
             try {
-                const response = await fetch('http://localhost:3000/api/register', {
+                const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dataRegister)

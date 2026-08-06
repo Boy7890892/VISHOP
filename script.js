@@ -52,7 +52,8 @@ async function ambilDanTampilkanProduk(kataKunci = '') {
     productGrid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: #777;">Memuat produk VISHOP...</p>'; 
 
     try {
-        const url = kataKunci ? `http://localhost:3000/api/products?search=${kataKunci}` : 'http://localhost:3000/api/products';
+        // UBAH MENJADI:
+        const url = kataKunci ? `/api/products?search=${kataKunci}` : '/api/products';
         const response = await fetch(url);
         const products = await response.json();
         

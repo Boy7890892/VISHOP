@@ -224,7 +224,6 @@
     </main>
 
     <script>
-        // Cek autentikasi user
         let userAktif = JSON.parse(localStorage.getItem('userVishop'));
 
         if (!userAktif) {
@@ -237,7 +236,6 @@
         const previewImg = document.getElementById('previewImg');
         const btnSubmit = document.getElementById('btnSubmit');
 
-        // Isi form dengan data user yang sedang login
         inputUsername.value = userAktif.username;
         if (userAktif.profile_image) {
             previewImg.src = userAktif.profile_image;
@@ -246,7 +244,6 @@
         let base64Image = userAktif.profile_image || '';
         const usernameLama = userAktif.username;
 
-        // Pratinjau gambar instan saat file dipilih
         inputFile.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -259,7 +256,6 @@
             }
         });
 
-        // Kirim perubahan profil ke server backend
         document.getElementById('formProfil').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -273,7 +269,7 @@
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/update-profile', {
+                const response = await fetch('/api/update-profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dataBaru)
@@ -284,7 +280,6 @@
                 if (response.ok) {
                     alert(hasil.message);
                     
-                    // Perbarui data user di memori browser (localStorage)
                     userAktif.username = hasil.username;
                     userAktif.profile_image = hasil.profile_image;
                     localStorage.setItem('userVishop', JSON.stringify(userAktif));
@@ -294,7 +289,7 @@
                     alert(hasil.error);
                 }
             } catch (error) {
-                alert("Gagal terhubung ke server. Pastikan server Node.js berjalan.");
+                alert("Gagal terhubung ke server.");
             } finally {
                 btnSubmit.innerText = "Simpan Perubahan";
                 btnSubmit.style.opacity = "1";

@@ -65,7 +65,6 @@
     </header>
 
     <main class="admin-container">
-        <!-- FORM TAMBAH PRODUK -->
         <div class="admin-card">
             <h2>Tambah Produk & Atur Status</h2>
             <form id="formTambahProduk">
@@ -95,7 +94,6 @@
             </form>
         </div>
 
-        <!-- TABEL DAFTAR PRODUK -->
         <div class="admin-card">
             <h2>Daftar Produk Tersedia</h2>
             <div style="overflow-x: auto;">
@@ -108,9 +106,7 @@
                             <th style="text-align: right;">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelProduk">
-                        <!-- Dimuat JS -->
-                    </tbody>
+                    <tbody id="tabelProduk"></tbody>
                 </table>
             </div>
         </div>
@@ -119,7 +115,7 @@
     <script>
         async function muatDaftarProduk() {
             try {
-                const response = await fetch('http://localhost:3000/api/products');
+                const response = await fetch('/api/products');
                 const products = await response.json();
                 const tabel = document.getElementById('tabelProduk');
                 tabel.innerHTML = ''; 
@@ -150,7 +146,7 @@
 
         async function hapusProduk(id) {
             if (confirm("Yakin ingin menghapus produk ini?")) {
-                await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' });
+                await fetch(`/api/products/${id}`, { method: 'DELETE' });
                 muatDaftarProduk();
             }
         }
@@ -158,7 +154,6 @@
         document.getElementById('formTambahProduk').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Membaca status checkbox dengan benar (.checked mengembalikan true atau false)
             const isNewChecked = document.getElementById('checkNew').checked ? 1 : 0;
             const isTrendingChecked = document.getElementById('checkTrending').checked ? 1 : 0;
 
@@ -175,7 +170,7 @@
             btn.innerText = 'Menyimpan...';
 
             try {
-                const res = await fetch('http://localhost:3000/api/products', {
+                const res = await fetch('/api/products', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(produkBaru)

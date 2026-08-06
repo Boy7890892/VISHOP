@@ -1,164 +1,165 @@
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2');
 
 const app = express();
 const port = 3000;
 
 app.use(cors());
-// DINAINKAN KE 50MB: Agar foto profil high-res dari HP tidak menyebabkan error
+// DINAIKKAN KE 50MB: Agar foto profil high-res dari HP tidak menyebabkan error
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// 1. Menggunakan Pool Koneksi MySQL
-const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',      
-    password: '',      
-    database: 'vishop_db',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+// TAMBAHKAN BARIS INI:
+app.use(express.static(__dirname));
 
-// 2. Mengecek apakah pool koneksi siap
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error('Yah, Gagal koneksi ke database:', err);
-        return;
-    }
-    console.log('Mantap! Berhasil terhubung ke database MySQL VISHOP.');
-    connection.release();
-});
+// Mengimpor Supabase Client
+const { createClient } = require('@supabase/supabase-js');
 
-// 3. API: Ambil / Cari Produk (Diperbarui untuk mendukung fitur admin & pencarian fleksibel)
-app.get('/api/products', (req, res) => {
+// Konfigurasi Database Supabase
+const supabaseUrl = 'https://ywzlszwaasiwuyfryzof.supabase.co'; // Hapus '/rest/v1/' di akhir URL
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3emxzendhYXNpd3V5ZnJ5em9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NzIyOTAsImV4cCI6MjEwMTU0ODI5MH0.w1uch1X0GbcVvwwMEz59mxlxIne8W6nJwSZG8gpfANM';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// 3. API: Ambil / Cari Produk
+app.get('/api/products', async (req, res) => {
     const kataKunci = req.query.search; 
-    let querySQL = 'SELECT * FROM products';
-    let variabelSQL = [];
+    let query = supabase.from('products').select('*');
 
     if (kataKunci) {
-        querySQL += ' WHERE title LIKE ? OR location LIKE ?';
-        variabelSQL.push(`%${kataKunci}%`, `%${kataKunci}%`); 
+        // Menggunakan ilike untuk pencarian teks (case-insensitive)
+        query = query.or(`title.ilike.%${kataKunci}%,location.ilike.%${kataKunci}%`);
     }
     
-    db.query(querySQL, variabelSQL, (err, results) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Gagal mengambil data dari database' });
-        } else {
-            res.json(results);
-        }
-    });
+    const { data, error } = await query;
+
+    if (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Gagal mengambil data dari database' });
+    }
+    res.json(data);
 });
 
-// 4. API: Tambah Produk (Diperbarui agar otomatis mendeteksi kategori status)
-app.post('/api/products', (req, res) => {
+// 4. API: Tambah Produk
+app.post('/api/products', async (req, res) => {
     let { title, price, discount, location, image, is_new, is_trending } = req.body;
     
-    // Pastikan nilai angka aman (jika undefined diubah jadi 0)
+    // Pastikan nilai angka aman
     price = Number(price) || 0;
     discount = Number(discount) || 0;
     is_new = is_new ? 1 : 0;
     is_trending = is_trending ? 1 : 0;
 
-    const querySQL = 'INSERT INTO products (title, price, discount, location, image, is_new, is_trending) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    
-    db.query(querySQL, [title, price, discount, location, image, is_new, is_trending], (err, result) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Gagal menambah produk ke database' });
-        } else {
-            res.json({ message: 'Hore! Produk berhasil ditambahkan!', id: result.insertId });
-        }
-    });
+    const { data, error } = await supabase
+        .from('products')
+        .insert([{ title, price, discount, location, image, is_new, is_trending }])
+        .select(); // .select() mengembalikan data yang baru di-insert
+
+    if (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Gagal menambah produk ke database' });
+    }
+    res.json({ message: 'Hore! Produk berhasil ditambahkan!', id: data[0].id });
 });
 
 // 5. API: Hapus Produk
-app.delete('/api/products/:id', (req, res) => {
+app.delete('/api/products/:id', async (req, res) => {
     const idProduk = req.params.id;
-    const querySQL = 'DELETE FROM products WHERE id = ?';
     
-    db.query(querySQL, [idProduk], (err, result) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Gagal menghapus produk' });
-        } else {
-            res.json({ message: 'Sip! Produk berhasil dihapus dari database.' });
-        }
-    });
+    const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', idProduk);
+        
+    if (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Gagal menghapus produk' });
+    }
+    res.json({ message: 'Sip! Produk berhasil dihapus dari database.' });
 });
 
 // 6. API: Login Pengguna
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-    const querySQL = 'SELECT * FROM users WHERE username = ? AND password = ?';
     
-    db.query(querySQL, [username, password], (err, results) => {
-        if (err) {
-            res.status(500).json({ error: 'Gagal menghubungi database' });
-        } else if (results.length > 0) {
-            const userData = {
-                username: results[0].username,
-                role: results[0].role,
-                profile_image: results[0].profile_image
-            };
-            res.json({ message: 'Login berhasil!', user: userData });
-        } else {
-            res.status(401).json({ error: 'Username atau password salah!' });
-        }
-    });
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password', password)
+        .single(); // Ambil satu baris saja
+        
+    if (error || !data) {
+        return res.status(401).json({ error: 'Username atau password salah!' });
+    }
+    
+    const userData = {
+        username: data.username,
+        role: data.role,
+        profile_image: data.profile_image
+    };
+    res.json({ message: 'Login berhasil!', user: userData });
 });
 
 // 7. API: Daftar Akun
-app.post('/api/register', (req, res) => {
+app.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
-    const cekSQL = 'SELECT * FROM users WHERE username = ?';
     
-    db.query(cekSQL, [username], (err, results) => {
-        if (err) return res.status(500).json({ error: 'Gagal menghubungi database' });
+    // Cek apakah username sudah ada
+    const { data: existingUser } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', username)
+        .maybeSingle(); // maybeSingle tidak akan melempar error jika data kosong
         
-        if (results.length > 0) {
-            return res.status(400).json({ error: 'Username sudah terdaftar! Pilih yang lain.' });
-        }
+    if (existingUser) {
+        return res.status(400).json({ error: 'Username sudah terdaftar! Pilih yang lain.' });
+    }
+    
+    // Insert user baru
+    const { error: insertError } = await supabase
+        .from('users')
+        .insert([{ 
+            username: username, 
+            password: password, 
+            role: 'user', 
+            profile_image: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' 
+        }]);
         
-        const insertSQL = "INSERT INTO users (username, password, role, profile_image) VALUES (?, ?, 'user', 'https://cdn-icons-png.flaticon.com/512/149/149071.png')";
-        db.query(insertSQL, [username, password], (err, insertResult) => {
-            if (err) return res.status(500).json({ error: 'Gagal membuat akun' });
-            res.json({ message: 'Pendaftaran berhasil! Silakan login.' });
-        });
-    });
+    if (insertError) {
+        return res.status(500).json({ error: 'Gagal membuat akun' });
+    }
+    res.json({ message: 'Pendaftaran berhasil! Silakan login.' });
 });
 
 // 8. API: Update Profil Pengguna
-app.post('/api/update-profile', (req, res) => {
+app.post('/api/update-profile', async (req, res) => {
     const { usernameLama, usernameBaru, profileImage } = req.body;
 
     if (usernameLama !== usernameBaru) {
-        const cekUsernameSQL = 'SELECT * FROM users WHERE username = ?';
-        db.query(cekUsernameSQL, [usernameBaru], (err, results) => {
-            if (err) return res.status(500).json({ error: 'Terjadi kesalahan di server' });
+        // Cek apakah username baru sudah dipakai orang lain
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('username')
+            .eq('username', usernameBaru)
+            .maybeSingle();
             
-            if (results.length > 0) {
-                return res.status(400).json({ error: 'Username sudah digunakan orang lain, pilih yang berbeda.' });
-            }
-            
-            lakukanUpdate();
-        });
-    } else {
-        lakukanUpdate(); 
+        if (existingUser) {
+            return res.status(400).json({ error: 'Username sudah digunakan orang lain, pilih yang berbeda.' });
+        }
     }
 
-    function lakukanUpdate() {
-        const querySQL = 'UPDATE users SET username = ?, profile_image = ? WHERE username = ?';
-        db.query(querySQL, [usernameBaru, profileImage, usernameLama], (err, result) => {
-            if (err) {
-                console.error("Error Database:", err);
-                return res.status(500).json({ error: 'Gagal memperbarui profil di database' });
-            }
-            res.json({ message: 'Profil berhasil diperbarui!', username: usernameBaru, profile_image: profileImage });
-        });
+    // Lakukan Update
+    const { error } = await supabase
+        .from('users')
+        .update({ username: usernameBaru, profile_image: profileImage })
+        .eq('username', usernameLama);
+        
+    if (error) {
+        console.error("Error Database:", error);
+        return res.status(500).json({ error: 'Gagal memperbarui profil di database' });
     }
+    
+    res.json({ message: 'Profil berhasil diperbarui!', username: usernameBaru, profile_image: profileImage });
 });
 
 // Cek jika tidak berjalan di Vercel (production), maka gunakan port lokal

@@ -13,17 +13,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Latar belakang gambar estetik */
             background: url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
         }
-        /* Efek gelap transparan untuk latar belakang */
         .overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.4);
             z-index: 1;
         }
-        /* Desain Kotak Kaca (Glassmorphism) */
         .auth-box {
             position: relative;
             background: rgba(255, 255, 255, 0.95);
@@ -47,7 +44,7 @@
             background: linear-gradient(135deg, #ee4d2d 0%, #ff7a59 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin: 0; /* Margin dihapus karena sudah diatur oleh kontainer logo */
+            margin: 0;
             letter-spacing: 2px;
         }
         .subtitle {
@@ -118,7 +115,6 @@
     <div class="overlay"></div>
     
     <div class="auth-box">
-        <!-- BARU: Wadah untuk Logo Gambar dan Teks VISHOP -->
         <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 5px;">
             <img src="image/logo.svg" alt="Logo VISHOP" style="height: 45px; width: auto; filter: drop-shadow(0 4px 6px rgba(238, 77, 45, 0.3));">
             <h1 class="logo-text">VISHOP</h1>
@@ -142,7 +138,6 @@
     </div>
 
     <script>
-        // Logika JavaScript tetap sama seperti sebelumnya
         document.getElementById('formLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -152,10 +147,10 @@
             };
 
             const btn = document.querySelector('.btn-auth');
-            btn.innerText = 'Memproses...'; // Animasi teks tombol
+            btn.innerText = 'Memproses...';
 
             try {
-                const response = await fetch('http://localhost:3000/api/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dataLogin)
