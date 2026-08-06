@@ -220,3 +220,12 @@ body {
         padding-bottom: 70px;
     }
 }
+/* Mencegah elemen keluar dari batas layar HP */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+body {
+    overflow-x: hidden;
+}
