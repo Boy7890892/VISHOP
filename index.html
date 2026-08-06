@@ -97,6 +97,61 @@
             .btn-print, .link-selesai { display: none !important; }
         }
         @media (max-width: 768px) { .digital-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        /* =========================================
+           KODE RESPONSIF UNTUK TAMPILAN HP / MOBILE
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 1. Mengatur Header agar tersusun ke bawah (Vertikal) */
+            .header { 
+                flex-direction: column; 
+                gap: 15px; 
+                padding: 15px; 
+            }
+            
+            /* 2. Melebarkan kotak pencarian 100% dari layar HP */
+            .search-bar { 
+                max-width: 100%; 
+                width: 100%; 
+                margin: 0; 
+            }
+            
+            /* 3. Merapikan tombol profil, keranjang, dan logout */
+            .header-actions { 
+                width: 100%; 
+                justify-content: center; 
+                flex-wrap: wrap;
+                gap: 15px; 
+            }
+            
+            /* 4. Membuat grid produk menjadi 2 kolom di HP (Seperti aplikasi E-commerce) */
+            .product-grid { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 10px; 
+            }
+            
+            /* 5. Menyesuaikan ukuran font dan jarak pada kartu produk */
+            .product-info { padding: 10px; }
+            .product-title { font-size: 12px; }
+            .product-price { font-size: 15px; }
+            .product-img-wrapper { height: 150px; }
+            .btn-add-cart { font-size: 11px; padding: 8px; }
+
+            /* 6. Menyesuaikan banner promo */
+            .marquee { font-size: 12px; }
+            
+            /* 7. Menyesuaikan ukuran Struk Transaksi */
+            .struk-box { width: 90%; padding: 25px 20px; }
+        }
+
+        /* Untuk layar HP yang sangat kecil (Lebar max 480px) */
+        @media (max-width: 480px) {
+            .header-actions { gap: 10px; }
+            .user-profile { font-size: 12px; padding: 5px; }
+            .cart-link { font-size: 12px; }
+            .btn-logout { padding: 6px 12px; font-size: 12px; }
+        }
+        
     </style>
 </head>
 <body>
